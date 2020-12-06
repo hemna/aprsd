@@ -638,6 +638,8 @@ def main(args=args):
 
     LOG.info("Start main loop")
     while True:
+        LOG.debug("Main loop start")
+        time.sleep(1) # prevent tight loop with 100% cpu
         line = ""
         try:
             line = sock_file.readline().strip()
@@ -649,6 +651,7 @@ def main(args=args):
                 (fromcall, message, ack) = process_message(line)
             else:
                 message = "noise"
+                LOG.debug("continue: noise")
                 continue
 
             # ACK (ack##)
@@ -656,7 +659,6 @@ def main(args=args):
                 # put message_number:1 in dict to record the ack
                 a = re.search('^ack([0-9]+)', message)
                 ack_dict.update({int(a.group(1)): 1})
-                continue
 
             # EMAIL (-)
             # is email command
@@ -814,13 +816,17 @@ def main(args=args):
                 sock.close()
                 setup_connection()
                 sock.send("user %s pass %s vers https://github.com/craigerl/aprsd 2.00\n" % (user, password))
+                LOG.debug("continue: connection fail")
                 continue
             # LOG.error("Exiting.")
             # os._exit(1)
             time.sleep(5)
+            LOG.debug("contnue: don't know what failed: " + str(e))
             continue   # don't know what failed, so wait and then continue main loop again
 
-    # end while True
+        LOG.debug("Main loop end")
+        # end while True
+
     sock.shutdown(0)
     sock.close()
 
